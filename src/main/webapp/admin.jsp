@@ -52,12 +52,12 @@
 
         <div class="product-card">
             <h2>Выручка</h2>
-            <p>${totalRevenue} ₽</p>
+            <p>${totalRevenue} BYN</p>
         </div>
 
         <div class="product-card">
             <h2>Возвраты</h2>
-            <p>${refundedAmount} ₽</p>
+            <p>${refundedAmount} BYN</p>
         </div>
 
     </div>
@@ -493,7 +493,7 @@
                         <c:out value="${p.name}"/>
                     </td>
 
-                    <td>${p.price} ₽</td>
+                    <td>${p.price} BYN</td>
 
                     <td>
                         <c:out value="${p.brand}"/>
@@ -839,8 +839,8 @@
 
                     <td>${o.id}</td>
                     <td>${o.userId}</td>
-                    <td>${o.totalPrice} ₽</td>
-                    <td>${o.discountAmount} ₽</td>
+                    <td>${o.totalPrice} BYN</td>
+                    <td>${o.discountAmount} BYN</td>
 
                     <td>
                         <c:choose>
@@ -853,7 +853,7 @@
                         </c:choose>
                     </td>
 
-                    <td>${o.deliveryPrice} ₽</td>
+                    <td>${o.deliveryPrice} BYN</td>
 
                     <td>
                         <c:out value="${o.deliveryAddress}"/>
@@ -1158,7 +1158,7 @@
                 <tr>
                     <td>${row.period}</td>
                     <td>${row.ordersCount}</td>
-                    <td>${row.revenue} ₽</td>
+                    <td>${row.revenue} BYN</td>
                 </tr>
 
             </c:forEach>
@@ -1185,7 +1185,7 @@
                     <td>${row.productId}</td>
                     <td><c:out value="${row.productName}"/></td>
                     <td>${row.soldQuantity}</td>
-                    <td>${row.revenue} ₽</td>
+                    <td>${row.revenue} BYN</td>
                 </tr>
 
             </c:forEach>
@@ -1212,7 +1212,7 @@
                     <td>${row.promoCode}</td>
                     <td><c:out value="${row.discountName}"/></td>
                     <td>${row.ordersCount}</td>
-                    <td>${row.totalDiscount} ₽</td>
+                    <td>${row.totalDiscount} BYN</td>
                 </tr>
 
             </c:forEach>

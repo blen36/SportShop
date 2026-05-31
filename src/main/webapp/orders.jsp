@@ -75,11 +75,11 @@
                         </td>
 
                         <td>
-                            ${o.totalPrice} ₽
+                            ${o.totalPrice} BYN
                         </td>
 
                         <td>
-                            ${o.discountAmount} ₽
+                            ${o.discountAmount} BYN
                         </td>
 
                         <td>
@@ -94,7 +94,7 @@
                         </td>
 
                         <td>
-                            ${o.deliveryPrice} ₽
+                            ${o.deliveryPrice} BYN
                         </td>
 
                         <td>

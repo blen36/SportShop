@@ -22,7 +22,7 @@
 
         <p><b>Payment ID:</b> ${payment.id}</p>
         <p><b>Order ID:</b> ${payment.orderId}</p>
-        <p><b>Amount:</b> ${payment.amount} ₽</p>
+        <p><b>Amount:</b> ${payment.amount} BYN</p>
         <p><b>Method:</b> ${payment.paymentMethod}</p>
 
         <form method="post"

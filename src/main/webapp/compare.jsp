@@ -161,7 +161,7 @@
                                items="${compareProducts}">
 
                         <td>
-                            ${p.price} ₽
+                            ${p.price} BYN
                         </td>
 
                     </c:forEach>

@@ -144,9 +144,9 @@
                         <tr>
                             <td>#${o.id}</td>
                             <td>${o.status}</td>
-                            <td>${o.totalPrice} ₽</td>
-                            <td>${o.discountAmount} ₽</td>
-                            <td>${o.deliveryPrice} ₽</td>
+                            <td>${o.totalPrice} BYN</td>
+                            <td>${o.discountAmount} BYN</td>
+                            <td>${o.deliveryPrice} BYN</td>
                             <td>${o.createdAt}</td>
                             <td>
                                 <c:choose>
@@ -224,7 +224,7 @@
 
                             <p>
                                 <b>Цена:</b>
-                                ${p.price} ₽
+                                ${p.price} BYN
                             </p>
 
                             <form method="post"
@@ -295,7 +295,7 @@
                             </h2>
 
                             <p class="price">
-                                ${p.price} ₽
+                                ${p.price} BYN
                             </p>
 
                         </div>
@@ -349,7 +349,7 @@
                             </h2>
 
                             <p class="price">
-                                ${p.price} ₽
+                                ${p.price} BYN
                             </p>
 
                         </div>

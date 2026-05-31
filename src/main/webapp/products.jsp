@@ -289,7 +289,7 @@
                         </c:if>
 
                         <p class="price">
-                            ${p.price} ₽
+                            ${p.price} BYN
                         </p>
 
                         <p>

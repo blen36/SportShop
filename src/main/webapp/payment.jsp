@@ -29,8 +29,8 @@
         <h2>Заказ #${order.id}</h2>
 
         <p><b>Статус:</b> ${order.status}</p>
-        <p><b>Сумма к оплате:</b> ${order.totalPrice} ₽</p>
-        <p><b>Доставка:</b> ${order.deliveryPrice} ₽</p>
+        <p><b>Сумма к оплате:</b> ${order.totalPrice} BYN</p>
+        <p><b>Доставка:</b> ${order.deliveryPrice} BYN</p>
 
         <p>
             <b>Адрес доставки:</b>
@@ -143,7 +143,7 @@
                             <td>${t.createdAt}</td>
                             <td>${t.transactionType}</td>
                             <td>${t.status}</td>
-                            <td>${t.amount} ₽</td>
+                            <td>${t.amount} BYN</td>
                             <td>${t.provider}</td>
                             <td>
                                 <c:choose>

@@ -120,7 +120,7 @@
             </div>
 
             <p class="price">
-                ${product.price} ₽
+                ${product.price} BYN
             </p>
 
             <c:if test="${product.stock > 0 && product.stock <= 5}">
@@ -399,7 +399,7 @@
                             </h2>
 
                             <p class="price">
-                                ${p.price} ₽
+                                ${p.price} BYN
                             </p>
 
                         </div>
@@ -453,7 +453,7 @@
                     </h2>
 
                     <p class="price">
-                        ${p.price} ₽
+                        ${p.price} BYN
                     </p>
 
                 </div>
