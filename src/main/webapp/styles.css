@@ -490,3 +490,19 @@ button:hover {
         overflow-x: auto;
     }
 }
+
+/* HISTORY */
+.history-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+}
+
+.history-list li {
+    margin-bottom: 6px;
+}
+
+.gateway-box {
+    max-width: 520px;
+    margin: 40px auto;
+}

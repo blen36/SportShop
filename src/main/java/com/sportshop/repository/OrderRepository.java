@@ -3,11 +3,14 @@ package com.sportshop.repository;
 import com.sportshop.config.DBConnection;
 import com.sportshop.models.CartItem;
 import com.sportshop.models.Order;
+import com.sportshop.models.OrderStatusHistory;
 
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OrderRepository {
 
@@ -74,12 +77,8 @@ public class OrderRepository {
             conn.setAutoCommit(false);
 
             try {
-
                 for (CartItem item : items) {
-
-                    try (PreparedStatement stmt =
-                                 conn.prepareStatement(stockSql)) {
-
+                    try (PreparedStatement stmt = conn.prepareStatement(stockSql)) {
                         stmt.setInt(1, item.getProductId());
 
                         ResultSet rs = stmt.executeQuery();
@@ -117,9 +116,7 @@ public class OrderRepository {
 
                 int orderId;
 
-                try (PreparedStatement stmt =
-                             conn.prepareStatement(orderSql)) {
-
+                try (PreparedStatement stmt = conn.prepareStatement(orderSql)) {
                     stmt.setInt(1, userId);
                     stmt.setString(2, "NEW");
                     stmt.setBigDecimal(3, finalTotal);
@@ -144,65 +141,57 @@ public class OrderRepository {
                     orderId = rs.getInt("id");
                 }
 
-                try (PreparedStatement stmt =
-                             conn.prepareStatement(itemSql)) {
+                insertOrderStatusHistory(
+                        conn,
+                        orderId,
+                        null,
+                        "NEW",
+                        userId,
+                        "Заказ создан"
+                );
 
+                try (PreparedStatement stmt = conn.prepareStatement(itemSql)) {
                     for (CartItem item : items) {
-
                         stmt.setInt(1, orderId);
                         stmt.setInt(2, item.getProductId());
                         stmt.setInt(3, item.getQuantity());
                         stmt.setBigDecimal(4, item.getPrice());
-
                         stmt.addBatch();
                     }
 
                     stmt.executeBatch();
                 }
 
-                try (PreparedStatement stmt =
-                             conn.prepareStatement(updateInventorySql)) {
-
+                try (PreparedStatement stmt = conn.prepareStatement(updateInventorySql)) {
                     for (CartItem item : items) {
-
                         stmt.setInt(1, item.getQuantity());
                         stmt.setInt(2, item.getProductId());
-
                         stmt.addBatch();
                     }
 
                     stmt.executeBatch();
                 }
 
-                try (PreparedStatement stmt =
-                             conn.prepareStatement(historySql)) {
-
+                try (PreparedStatement stmt = conn.prepareStatement(historySql)) {
                     for (CartItem item : items) {
-
                         stmt.setInt(1, item.getProductId());
                         stmt.setInt(2, -item.getQuantity());
                         stmt.setString(3, "PURCHASE");
-
                         stmt.addBatch();
                     }
 
                     stmt.executeBatch();
                 }
 
-                try (PreparedStatement stmt =
-                             conn.prepareStatement(clearCartSql)) {
-
+                try (PreparedStatement stmt = conn.prepareStatement(clearCartSql)) {
                     stmt.setInt(1, userId);
-
                     stmt.executeUpdate();
                 }
 
                 conn.commit();
-
                 return orderId;
 
             } catch (Exception e) {
-
                 conn.rollback();
                 e.printStackTrace();
             }
@@ -215,7 +204,6 @@ public class OrderRepository {
     }
 
     public Order findById(int orderId) {
-
         String sql = """
             SELECT *
             FROM orders
@@ -223,8 +211,7 @@ public class OrderRepository {
         """;
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, orderId);
 
@@ -242,7 +229,6 @@ public class OrderRepository {
     }
 
     public List<Order> getOrdersByUser(int userId) {
-
         List<Order> orders = new ArrayList<>();
 
         String sql = """
@@ -253,8 +239,7 @@ public class OrderRepository {
         """;
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, userId);
 
@@ -272,7 +257,6 @@ public class OrderRepository {
     }
 
     public List<Order> getAllOrders() {
-
         List<Order> orders = new ArrayList<>();
 
         String sql = """
@@ -282,8 +266,7 @@ public class OrderRepository {
         """;
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = stmt.executeQuery();
 
@@ -299,22 +282,70 @@ public class OrderRepository {
     }
 
     public boolean updateStatus(int orderId,
-                                String status) {
+                                String status,
+                                Integer changedByUserId,
+                                String comment) {
 
-        String sql = """
+        String selectSql = """
+            SELECT status
+            FROM orders
+            WHERE id=?
+            FOR UPDATE
+        """;
+
+        String updateSql = """
             UPDATE orders
             SET status=?
             WHERE id=?
         """;
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection()) {
 
-            stmt.setString(1, status);
-            stmt.setInt(2, orderId);
+            conn.setAutoCommit(false);
 
-            return stmt.executeUpdate() > 0;
+            try {
+                String oldStatus;
+
+                try (PreparedStatement stmt = conn.prepareStatement(selectSql)) {
+                    stmt.setInt(1, orderId);
+
+                    ResultSet rs = stmt.executeQuery();
+
+                    if (!rs.next()) {
+                        conn.rollback();
+                        return false;
+                    }
+
+                    oldStatus = rs.getString("status");
+                }
+
+                if (status.equals(oldStatus)) {
+                    conn.commit();
+                    return true;
+                }
+
+                try (PreparedStatement stmt = conn.prepareStatement(updateSql)) {
+                    stmt.setString(1, status);
+                    stmt.setInt(2, orderId);
+                    stmt.executeUpdate();
+                }
+
+                insertOrderStatusHistory(
+                        conn,
+                        orderId,
+                        oldStatus,
+                        status,
+                        changedByUserId,
+                        comment
+                );
+
+                conn.commit();
+                return true;
+
+            } catch (Exception e) {
+                conn.rollback();
+                e.printStackTrace();
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -323,8 +354,52 @@ public class OrderRepository {
         return false;
     }
 
-    public double getTotalRevenue() {
+    public List<OrderStatusHistory> getStatusHistory(int orderId) {
+        List<OrderStatusHistory> history = new ArrayList<>();
 
+        String sql = """
+            SELECT *
+            FROM order_status_history
+            WHERE order_id=?
+            ORDER BY created_at DESC, id DESC
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, orderId);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                history.add(mapStatusHistory(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return history;
+    }
+
+    public Map<Integer, List<OrderStatusHistory>> getStatusHistoryMap(List<Order> orders) {
+        Map<Integer, List<OrderStatusHistory>> map = new HashMap<>();
+
+        if (orders == null || orders.isEmpty()) {
+            return map;
+        }
+
+        for (Order order : orders) {
+            map.put(
+                    order.getId(),
+                    getStatusHistory(order.getId())
+            );
+        }
+
+        return map;
+    }
+
+    public double getTotalRevenue() {
         String sql = """
             SELECT COALESCE(SUM(total_price), 0)
             FROM orders
@@ -332,8 +407,7 @@ public class OrderRepository {
         """;
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt =
-                     conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             ResultSet rs = stmt.executeQuery();
 
@@ -348,9 +422,41 @@ public class OrderRepository {
         return 0;
     }
 
-    private Order mapOrder(ResultSet rs)
-            throws SQLException {
+    private void insertOrderStatusHistory(Connection conn,
+                                          int orderId,
+                                          String oldStatus,
+                                          String newStatus,
+                                          Integer changedByUserId,
+                                          String comment) throws SQLException {
 
+        String sql = """
+            INSERT INTO order_status_history(
+                order_id,
+                old_status,
+                new_status,
+                changed_by_user_id,
+                comment
+            )
+            VALUES (?, ?, ?, ?, ?)
+        """;
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, orderId);
+            stmt.setString(2, oldStatus);
+            stmt.setString(3, newStatus);
+
+            if (changedByUserId == null) {
+                stmt.setNull(4, Types.INTEGER);
+            } else {
+                stmt.setInt(4, changedByUserId);
+            }
+
+            stmt.setString(5, comment);
+            stmt.executeUpdate();
+        }
+    }
+
+    private Order mapOrder(ResultSet rs) throws SQLException {
         Order order = new Order();
 
         order.setId(rs.getInt("id"));
@@ -364,5 +470,28 @@ public class OrderRepository {
         order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
 
         return order;
+    }
+
+    private OrderStatusHistory mapStatusHistory(ResultSet rs)
+            throws SQLException {
+
+        OrderStatusHistory history = new OrderStatusHistory();
+
+        history.setId(rs.getInt("id"));
+        history.setOrderId(rs.getInt("order_id"));
+        history.setOldStatus(rs.getString("old_status"));
+        history.setNewStatus(rs.getString("new_status"));
+
+        int changedBy = rs.getInt("changed_by_user_id");
+        if (rs.wasNull()) {
+            history.setChangedByUserId(null);
+        } else {
+            history.setChangedByUserId(changedBy);
+        }
+
+        history.setComment(rs.getString("comment"));
+        history.setCreatedAt(rs.getTimestamp("created_at"));
+
+        return history;
     }
 }

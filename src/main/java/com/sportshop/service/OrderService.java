@@ -2,10 +2,12 @@ package com.sportshop.service;
 
 import com.sportshop.models.CartItem;
 import com.sportshop.models.Order;
+import com.sportshop.models.OrderStatusHistory;
 import com.sportshop.repository.OrderRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public class OrderService {
 
@@ -153,6 +155,12 @@ public class OrderService {
 
     public void updateStatus(int orderId,
                              String status) {
+        updateStatus(orderId, status, null);
+    }
+
+    public void updateStatus(int orderId,
+                             String status,
+                             Integer changedByUserId) {
 
         if (status == null ||
                 !ALLOWED_STATUSES.contains(status)) {
@@ -166,8 +174,12 @@ public class OrderService {
             return;
         }
 
-        boolean updated =
-                repo.updateStatus(orderId, status);
+        boolean updated = repo.updateStatus(
+                orderId,
+                status,
+                changedByUserId,
+                "Статус изменён администратором"
+        );
 
         if (updated &&
                 !status.equals(before.getStatus())) {
@@ -178,6 +190,14 @@ public class OrderService {
                             " изменён на " + status + "."
             );
         }
+    }
+
+    public List<OrderStatusHistory> getStatusHistory(int orderId) {
+        return repo.getStatusHistory(orderId);
+    }
+
+    public Map<Integer, List<OrderStatusHistory>> getStatusHistoryMap(List<Order> orders) {
+        return repo.getStatusHistoryMap(orders);
     }
 
     public double getTotalRevenue() {
