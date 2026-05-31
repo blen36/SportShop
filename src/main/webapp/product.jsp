@@ -82,53 +82,45 @@
                 <c:out value="${product.description}"/>
             </p>
 
-            <p>
-                <b>Бренд:</b>
+            <div class="product-meta-grid">
 
-                <c:choose>
+                <div>
+                    <span class="meta-label">Бренд</span>
+                    <b>
+                        <c:choose>
+                            <c:when test="${not empty product.brand}">
+                                <c:out value="${product.brand}"/>
+                            </c:when>
+                            <c:otherwise>-</c:otherwise>
+                        </c:choose>
+                    </b>
+                </div>
 
-                    <c:when test="${not empty product.brand}">
-                        <c:out value="${product.brand}"/>
-                    </c:when>
+                <div>
+                    <span class="meta-label">Рейтинг</span>
+                    <b class="rating">
+                        ★
+                        <c:choose>
+                            <c:when test="${product.reviewsCount > 0}">
+                                <fmt:formatNumber value="${product.averageRating}"
+                                                  maxFractionDigits="1"/>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="muted">Нет отзывов</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </b>
+                </div>
 
-                    <c:otherwise>
-                        -
-                    </c:otherwise>
+                <div>
+                    <span class="meta-label">В наличии</span>
+                    <b>${product.stock}</b>
+                </div>
 
-                </c:choose>
-
-            </p>
-
-            <p class="rating">
-                ★
-
-                <c:choose>
-
-                    <c:when test="${product.reviewsCount > 0}">
-                        <fmt:formatNumber value="${product.averageRating}"
-                                          maxFractionDigits="1"/>
-                        <span class="muted">
-                            (${product.reviewsCount} отзывов)
-                        </span>
-                    </c:when>
-
-                    <c:otherwise>
-                        <span class="muted">
-                            Нет отзывов
-                        </span>
-                    </c:otherwise>
-
-                </c:choose>
-
-            </p>
+            </div>
 
             <p class="price">
                 ${product.price} ₽
-            </p>
-
-            <p>
-                <b>В наличии:</b>
-                ${product.stock}
             </p>
 
             <c:if test="${product.stock > 0 && product.stock <= 5}">
@@ -139,11 +131,28 @@
 
             </c:if>
 
-            <c:if test="${not empty product.attributes && product.attributes != '{}'}">
+            <c:if test="${not empty product.attributeItems}">
 
-                <div class="attributes-box">
-                    <b>Характеристики:</b>
-                    <pre><c:out value="${product.attributes}"/></pre>
+                <div class="attributes-box clean-attributes">
+                    <h3>Характеристики</h3>
+
+                    <div class="attributes-list">
+
+                        <c:forEach var="attr"
+                                   items="${product.attributeItems}">
+
+                            <div class="attribute-row">
+                                <span class="attribute-key">
+                                    <c:out value="${attr.key}"/>
+                                </span>
+                                <span class="attribute-value">
+                                    <c:out value="${attr.value}"/>
+                                </span>
+                            </div>
+
+                        </c:forEach>
+
+                    </div>
                 </div>
 
             </c:if>
@@ -364,11 +373,23 @@
 
                         <div class="product-card small-card">
 
-                            <c:if test="${not empty p.imageUrl}">
-                                <img src="${p.imageUrl}"
-                                     alt="${p.name}"
-                                     class="product-image"/>
-                            </c:if>
+                            <a href="product?id=${p.id}"
+                               class="image-link">
+
+                                <c:choose>
+                                    <c:when test="${not empty p.imageUrl}">
+                                        <img src="${p.imageUrl}"
+                                             alt="${p.name}"
+                                             class="product-image"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="product-placeholder">
+                                            Нет изображения
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+
+                            </a>
 
                             <h2>
                                 <a href="product?id=${p.id}"
@@ -406,11 +427,23 @@
 
                 <div class="product-card small-card">
 
-                    <c:if test="${not empty p.imageUrl}">
-                        <img src="${p.imageUrl}"
-                             alt="${p.name}"
-                             class="product-image"/>
-                    </c:if>
+                    <a href="product?id=${p.id}"
+                       class="image-link">
+
+                        <c:choose>
+                            <c:when test="${not empty p.imageUrl}">
+                                <img src="${p.imageUrl}"
+                                     alt="${p.name}"
+                                     class="product-image"/>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="product-placeholder">
+                                    Нет изображения
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+
+                    </a>
 
                     <h2>
                         <a href="product?id=${p.id}"

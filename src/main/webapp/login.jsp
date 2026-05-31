@@ -4,32 +4,65 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Вход</title>
+    <title>Вход | SportShop</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
 
-<div class="container">
+<body class="auth-page">
 
-    <h1>Вход в систему</h1>
+<div class="auth-layout">
 
-    <c:if test="${param.error != null}">
-        <p style="color:red;">Неверный логин или пароль</p>
-    </c:if>
+    <div class="auth-card">
 
-    <form method="post" class="filters">
+        <div class="auth-logo">
+            <span>SPORT</span>SHOP
+        </div>
 
-        <input type="text" name="email" placeholder="Email" required/>
+        <h1>Вход в аккаунт</h1>
 
-        <input type="password" name="password" placeholder="Пароль" required/>
+        <p class="auth-subtitle">
+            Введите email и пароль, чтобы перейти в магазин.
+        </p>
 
-        <button type="submit">Войти</button>
+        <c:if test="${param.error != null}">
+            <div class="error-message">
+                Неверный email или пароль.
+            </div>
+        </c:if>
 
-    </form>
+        <form method="post" class="auth-form">
 
-    <p>
-        Нет аккаунта? <a href="register">Зарегистрироваться</a>
-    </p>
+            <label for="email">Email</label>
+            <input id="email"
+                   type="email"
+                   name="email"
+                   placeholder="user@example.com"
+                   required>
+
+            <label for="password">Пароль</label>
+            <input id="password"
+                   type="password"
+                   name="password"
+                   placeholder="Введите пароль"
+                   required>
+
+            <button type="submit" class="auth-button">
+                Войти
+            </button>
+
+        </form>
+
+        <div class="auth-divider">
+            <span></span>
+            <p>или</p>
+            <span></span>
+        </div>
+
+        <a href="register" class="auth-secondary-button">
+            Создать аккаунт
+        </a>
+
+    </div>
 
 </div>
 

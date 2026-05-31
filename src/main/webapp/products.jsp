@@ -28,7 +28,7 @@
     <c:if test="${param.error == 'stock'}">
 
         <div class="error-message">
-            Недостаточно товара на складе или достигнут лимит
+            Недостаточно товара на складе или достигнут лимит.
         </div>
 
     </c:if>
@@ -231,22 +231,17 @@
                             <c:out value="${p.description}"/>
                         </p>
 
-                        <p>
-                            <b>Бренд:</b>
-
-                            <c:choose>
-
-                                <c:when test="${not empty p.brand}">
-                                    <c:out value="${p.brand}"/>
-                                </c:when>
-
-                                <c:otherwise>
-                                    -
-                                </c:otherwise>
-
-                            </c:choose>
-
-                        </p>
+                        <div class="product-meta-row">
+                            <span>
+                                <b>Бренд:</b>
+                                <c:choose>
+                                    <c:when test="${not empty p.brand}">
+                                        <c:out value="${p.brand}"/>
+                                    </c:when>
+                                    <c:otherwise>-</c:otherwise>
+                                </c:choose>
+                            </span>
+                        </div>
 
                         <p class="rating">
                             ★
@@ -271,11 +266,24 @@
 
                         </p>
 
-                        <c:if test="${not empty p.attributes && p.attributes != '{}'}">
+                        <c:if test="${not empty p.shortAttributeItems}">
 
-                            <div class="attributes-box">
-                                <b>Характеристики:</b>
-                                <pre><c:out value="${p.attributes}"/></pre>
+                            <div class="attributes-list compact-attributes">
+
+                                <c:forEach var="attr"
+                                           items="${p.shortAttributeItems}">
+
+                                    <div class="attribute-row">
+                                        <span class="attribute-key">
+                                            <c:out value="${attr.key}"/>
+                                        </span>
+                                        <span class="attribute-value">
+                                            <c:out value="${attr.value}"/>
+                                        </span>
+                                    </div>
+
+                                </c:forEach>
+
                             </div>
 
                         </c:if>
@@ -322,9 +330,7 @@
 
                                         <button disabled
                                                 class="disabled-button">
-
                                             Нет в наличии
-
                                         </button>
 
                                     </c:when>

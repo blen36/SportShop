@@ -4,32 +4,65 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Регистрация</title>
+    <title>Регистрация | SportShop</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
 
-<div class="container">
+<body class="auth-page">
 
-    <h1>Регистрация</h1>
+<div class="auth-layout">
 
-    <c:if test="${param.error != null}">
-        <p style="color:red;">Пользователь уже существует</p>
-    </c:if>
+    <div class="auth-card">
 
-    <form method="post" class="filters">
+        <div class="auth-logo">
+            <span>SPORT</span>SHOP
+        </div>
 
-        <input type="text" name="email" placeholder="Email" required/>
+        <h1>Создание аккаунта</h1>
 
-        <input type="password" name="password" placeholder="Пароль" required/>
+        <p class="auth-subtitle">
+            Зарегистрируйтесь, чтобы оформлять заказы и сохранять товары.
+        </p>
 
-        <button type="submit">Зарегистрироваться</button>
+        <c:if test="${param.error != null}">
+            <div class="error-message">
+                Пользователь с таким email уже существует.
+            </div>
+        </c:if>
 
-    </form>
+        <form method="post" class="auth-form">
 
-    <p>
-        Уже есть аккаунт? <a href="login">Войти</a>
-    </p>
+            <label for="email">Email</label>
+            <input id="email"
+                   type="email"
+                   name="email"
+                   placeholder="user@example.com"
+                   required>
+
+            <label for="password">Пароль</label>
+            <input id="password"
+                   type="password"
+                   name="password"
+                   placeholder="Придумайте пароль"
+                   required>
+
+            <button type="submit" class="auth-button">
+                Зарегистрироваться
+            </button>
+
+        </form>
+
+        <div class="auth-divider">
+            <span></span>
+            <p>или</p>
+            <span></span>
+        </div>
+
+        <a href="login" class="auth-secondary-button">
+            Войти в аккаунт
+        </a>
+
+    </div>
 
 </div>
 
