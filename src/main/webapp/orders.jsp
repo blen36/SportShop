@@ -24,6 +24,12 @@
         </div>
     </c:if>
 
+    <c:if test="${param.paymentError == '1'}">
+        <div class="error-message">
+            Не удалось обработать платёж.
+        </div>
+    </c:if>
+
     <c:choose>
 
         <c:when test="${empty orders}">
@@ -49,6 +55,7 @@
                     <th>Доставка</th>
                     <th>Адрес</th>
                     <th>Дата</th>
+                    <th>История статусов</th>
                     <th>Действие</th>
                 </tr>
 
@@ -96,6 +103,27 @@
 
                         <td>
                             ${o.createdAt}
+                        </td>
+
+                        <td>
+                            <c:choose>
+                                <c:when test="${empty orderStatusHistory[o.id]}">
+                                    -
+                                </c:when>
+                                <c:otherwise>
+                                    <ul class="history-list">
+                                        <c:forEach var="h" items="${orderStatusHistory[o.id]}">
+                                            <li>
+                                                ${h.createdAt}: ${h.oldStatus == null ? '—' : h.oldStatus}
+                                                → ${h.newStatus}
+                                                <c:if test="${not empty h.comment}">
+                                                    <br/><span class="muted"><c:out value="${h.comment}"/></span>
+                                                </c:if>
+                                            </li>
+                                        </c:forEach>
+                                    </ul>
+                                </c:otherwise>
+                            </c:choose>
                         </td>
 
                         <td>

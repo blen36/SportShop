@@ -1,5 +1,7 @@
 package com.sportshop.controller;
 
+import com.sportshop.models.Order;
+import com.sportshop.service.NotificationService;
 import com.sportshop.service.OrderService;
 import com.sportshop.service.RecommendationService;
 import com.sportshop.service.UserService;
@@ -9,6 +11,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
@@ -22,8 +25,10 @@ public class ProfileServlet extends HttpServlet {
     private final RecommendationService recommendationService =
             new RecommendationService();
 
-    private Integer getUserId(HttpServletRequest req) {
+    private final NotificationService notificationService =
+            new NotificationService();
 
+    private Integer getUserId(HttpServletRequest req) {
         Object userId =
                 req.getSession().getAttribute("userId");
 
@@ -46,6 +51,8 @@ public class ProfileServlet extends HttpServlet {
             return;
         }
 
+        List<Order> orders = orderService.getUserOrders(userId);
+
         req.setAttribute(
                 "user",
                 userService.getUser(userId)
@@ -56,9 +63,21 @@ public class ProfileServlet extends HttpServlet {
                 userService.getFavorites(userId)
         );
 
+        req.setAttribute("orders", orders);
+
         req.setAttribute(
-                "orders",
-                orderService.getUserOrders(userId)
+                "orderStatusHistory",
+                orderService.getStatusHistoryMap(orders)
+        );
+
+        req.setAttribute(
+                "notifications",
+                notificationService.getUserNotifications(userId)
+        );
+
+        req.setAttribute(
+                "unreadNotifications",
+                notificationService.getUnreadCount(userId)
         );
 
         req.setAttribute(

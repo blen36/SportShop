@@ -3,34 +3,21 @@ package com.sportshop.models;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
-public class Payment {
+public class PaymentTransaction {
 
     private int id;
+    private int paymentId;
     private int orderId;
     private int userId;
-    private BigDecimal amount;
-    private String paymentMethod;
+    private String transactionType;
     private String status;
+    private BigDecimal amount;
     private String provider;
     private String gatewayTransactionId;
-    private String refundReason;
-    private Timestamp refundedAt;
+    private String message;
     private Timestamp createdAt;
 
-    public Payment() {}
-
-    public Payment(int orderId,
-                   int userId,
-                   BigDecimal amount,
-                   String paymentMethod,
-                   String status) {
-
-        this.orderId = orderId;
-        this.userId = userId;
-        this.amount = amount;
-        this.paymentMethod = paymentMethod;
-        this.status = status;
-    }
+    public PaymentTransaction() {}
 
     public int getId() {
         return id;
@@ -38,6 +25,14 @@ public class Payment {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(int paymentId) {
+        this.paymentId = paymentId;
     }
 
     public int getOrderId() {
@@ -56,20 +51,12 @@ public class Payment {
         this.userId = userId;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public String getTransactionType() {
+        return transactionType;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
+    public void setTransactionType(String transactionType) {
+        this.transactionType = transactionType;
     }
 
     public String getStatus() {
@@ -78,6 +65,14 @@ public class Payment {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 
     public String getProvider() {
@@ -96,20 +91,12 @@ public class Payment {
         this.gatewayTransactionId = gatewayTransactionId;
     }
 
-    public String getRefundReason() {
-        return refundReason;
+    public String getMessage() {
+        return message;
     }
 
-    public void setRefundReason(String refundReason) {
-        this.refundReason = refundReason;
-    }
-
-    public Timestamp getRefundedAt() {
-        return refundedAt;
-    }
-
-    public void setRefundedAt(Timestamp refundedAt) {
-        this.refundedAt = refundedAt;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public Timestamp getCreatedAt() {

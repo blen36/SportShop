@@ -21,6 +21,18 @@
 
     <h1>Админ панель 🛠</h1>
 
+    <c:if test="${not empty adminMessage}">
+        <div class="success-message">
+            <c:out value="${adminMessage}"/>
+        </div>
+    </c:if>
+
+    <c:if test="${not empty adminError}">
+        <div class="error-message">
+            <c:out value="${adminError}"/>
+        </div>
+    </c:if>
+
     <div class="products">
 
         <div class="product-card">
@@ -73,6 +85,153 @@
         </div>
 
     </c:if>
+
+    <br/>
+
+    <div class="section-card">
+
+        <h2>
+            <c:choose>
+                <c:when test="${category != null && category.id > 0}">
+                    Редактирование категории
+                </c:when>
+                <c:otherwise>
+                    Добавление категории
+                </c:otherwise>
+            </c:choose>
+        </h2>
+
+        <form method="post"
+              action="admin">
+
+            <input type="hidden"
+                   name="action"
+                   value="saveCategory"/>
+
+            <input type="hidden"
+                   name="id"
+                   value="${category.id}"/>
+
+            <label>Название категории</label>
+            <br/>
+
+            <input type="text"
+                   name="name"
+                   value="${category.name}"
+                   placeholder="Например: Футбол"
+                   required/>
+
+            <br/><br/>
+
+            <label>Родительская категория</label>
+            <br/>
+
+            <select name="parentId">
+                <option value="">Нет, это основная категория</option>
+
+                <c:forEach var="c" items="${categories}">
+                    <c:if test="${category == null || category.id != c.id}">
+                        <option value="${c.id}"
+                            <c:if test="${category.parentId == c.id}">
+                                selected
+                            </c:if>>
+                            ${c.name}
+                        </option>
+                    </c:if>
+                </c:forEach>
+            </select>
+
+            <br/><br/>
+
+            <button>
+                Сохранить категорию
+            </button>
+
+            <c:if test="${category != null && category.id > 0}">
+                <a href="admin"
+                   class="reset-link">
+                    Отменить редактирование
+                </a>
+            </c:if>
+
+        </form>
+
+        <br/>
+
+        <h3>Категории</h3>
+
+        <table class="data-table">
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Parent ID</th>
+                <th>Тип</th>
+                <th>Действия</th>
+            </tr>
+
+            <c:forEach var="c" items="${categories}">
+                <tr>
+                    <td>${c.id}</td>
+                    <td><c:out value="${c.name}"/></td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${c.parentId != null}">
+                                ${c.parentId}
+                            </c:when>
+                            <c:otherwise>-</c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${c.parentId == null}">
+                                Основная
+                            </c:when>
+                            <c:otherwise>Подкатегория</c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td>
+                        <form method="get"
+                              action="admin"
+                              class="inline-form">
+
+                            <input type="hidden"
+                                   name="action"
+                                   value="editCategory"/>
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="${c.id}"/>
+
+                            <button>
+                                Редактировать
+                            </button>
+
+                        </form>
+
+                        <form method="post"
+                              action="admin"
+                              class="inline-form">
+
+                            <input type="hidden"
+                                   name="action"
+                                   value="deleteCategory"/>
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="${c.id}"/>
+
+                            <button class="danger-button"
+                                    onclick="return confirm('Удалить категорию? Если в ней есть товары или подкатегории, удаление будет отменено.')">
+                                Удалить
+                            </button>
+
+                        </form>
+                    </td>
+                </tr>
+            </c:forEach>
+        </table>
+
+    </div>
 
     <br/>
 
@@ -669,6 +828,7 @@
                 <th>Статус</th>
                 <th>Дата</th>
                 <th>Статус</th>
+                <th>История статусов</th>
                 <th>Возврат</th>
             </tr>
 
@@ -738,6 +898,27 @@
 
                         </form>
 
+                    </td>
+
+                    <td>
+                        <c:choose>
+                            <c:when test="${empty orderStatusHistory[o.id]}">
+                                -
+                            </c:when>
+                            <c:otherwise>
+                                <ul class="history-list">
+                                    <c:forEach var="h" items="${orderStatusHistory[o.id]}">
+                                        <li>
+                                            ${h.createdAt}: ${h.oldStatus == null ? '—' : h.oldStatus}
+                                            → ${h.newStatus}
+                                            <c:if test="${not empty h.comment}">
+                                                <br/><span class="muted"><c:out value="${h.comment}"/></span>
+                                            </c:if>
+                                        </li>
+                                    </c:forEach>
+                                </ul>
+                            </c:otherwise>
+                        </c:choose>
                     </td>
 
                     <td>

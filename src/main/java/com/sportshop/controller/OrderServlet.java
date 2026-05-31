@@ -1,5 +1,6 @@
 package com.sportshop.controller;
 
+import com.sportshop.models.Order;
 import com.sportshop.service.OrderService;
 
 import jakarta.servlet.ServletException;
@@ -7,6 +8,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet("/orders")
 public class OrderServlet extends HttpServlet {
@@ -15,7 +17,6 @@ public class OrderServlet extends HttpServlet {
             new OrderService();
 
     private Integer getUserId(HttpServletRequest req) {
-
         Object userId =
                 req.getSession().getAttribute("userId");
 
@@ -38,9 +39,12 @@ public class OrderServlet extends HttpServlet {
             return;
         }
 
+        List<Order> orders = service.getUserOrders(userId);
+
+        req.setAttribute("orders", orders);
         req.setAttribute(
-                "orders",
-                service.getUserOrders(userId)
+                "orderStatusHistory",
+                service.getStatusHistoryMap(orders)
         );
 
         req.getRequestDispatcher("/orders.jsp")

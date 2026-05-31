@@ -135,6 +135,7 @@
                         <th>Скидка</th>
                         <th>Доставка</th>
                         <th>Дата</th>
+                        <th>История статусов</th>
                     </tr>
 
                     <c:forEach var="o"
@@ -147,6 +148,26 @@
                             <td>${o.discountAmount} ₽</td>
                             <td>${o.deliveryPrice} ₽</td>
                             <td>${o.createdAt}</td>
+                            <td>
+                                <c:choose>
+                                    <c:when test="${empty orderStatusHistory[o.id]}">
+                                        -
+                                    </c:when>
+                                    <c:otherwise>
+                                        <ul class="history-list">
+                                            <c:forEach var="h" items="${orderStatusHistory[o.id]}">
+                                                <li>
+                                                    ${h.createdAt}: ${h.oldStatus == null ? '—' : h.oldStatus}
+                                                    → ${h.newStatus}
+                                                    <c:if test="${not empty h.comment}">
+                                                        <br/><span class="muted"><c:out value="${h.comment}"/></span>
+                                                    </c:if>
+                                                </li>
+                                            </c:forEach>
+                                        </ul>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
                         </tr>
 
                     </c:forEach>

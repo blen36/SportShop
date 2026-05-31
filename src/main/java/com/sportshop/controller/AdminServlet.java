@@ -1,6 +1,8 @@
 package com.sportshop.controller;
 
+import com.sportshop.models.Category;
 import com.sportshop.models.Discount;
+import com.sportshop.models.Order;
 import com.sportshop.models.Product;
 import com.sportshop.service.CategoryService;
 import com.sportshop.service.DiscountService;
@@ -53,7 +55,6 @@ public class AdminServlet extends HttpServlet {
             new ReportService();
 
     private boolean isAdmin(HttpServletRequest req) {
-
         String role =
                 (String) req.getSession()
                         .getAttribute("role");
@@ -62,7 +63,6 @@ public class AdminServlet extends HttpServlet {
     }
 
     private Integer getCurrentUserId(HttpServletRequest req) {
-
         Object userId =
                 req.getSession().getAttribute("userId");
 
@@ -85,10 +85,24 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
+        HttpSession session = req.getSession();
+
+        Object adminMessage = session.getAttribute("adminMessage");
+        Object adminError = session.getAttribute("adminError");
+
+        if (adminMessage != null) {
+            req.setAttribute("adminMessage", adminMessage);
+            session.removeAttribute("adminMessage");
+        }
+
+        if (adminError != null) {
+            req.setAttribute("adminError", adminError);
+            session.removeAttribute("adminError");
+        }
+
         String action = req.getParameter("action");
 
         if ("editProduct".equals(action)) {
-
             int id = parseIntOrDefault(
                     req.getParameter("id"),
                     0
@@ -103,14 +117,12 @@ public class AdminServlet extends HttpServlet {
         }
 
         if ("editDiscount".equals(action)) {
-
             int id = parseIntOrDefault(
                     req.getParameter("id"),
                     0
             );
 
             if (id > 0) {
-
                 req.setAttribute(
                         "discount",
                         discountService.getDiscount(id)
@@ -126,6 +138,20 @@ public class AdminServlet extends HttpServlet {
             }
         }
 
+        if ("editCategory".equals(action)) {
+            int id = parseIntOrDefault(
+                    req.getParameter("id"),
+                    0
+            );
+
+            if (id > 0) {
+                req.setAttribute(
+                        "category",
+                        categoryService.getCategory(id)
+                );
+            }
+        }
+
         List<Product> products =
                 productService.getAllProducts();
 
@@ -135,12 +161,18 @@ public class AdminServlet extends HttpServlet {
                                 p.getStock() <= 5)
                         .toList();
 
+        List<Order> orders = orderService.getAllOrders();
+
         req.setAttribute("products", products);
         req.setAttribute("lowStockProducts", lowStockProducts);
         req.setAttribute("categories", categoryService.getAllCategories());
 
-        req.setAttribute("orders", orderService.getAllOrders());
+        req.setAttribute("orders", orders);
         req.setAttribute("orderStatuses", orderService.getAllowedStatuses());
+        req.setAttribute(
+                "orderStatusHistory",
+                orderService.getStatusHistoryMap(orders)
+        );
 
         req.setAttribute("users", userService.getAllUsers());
         req.setAttribute("reviews", reviewService.getAllReviews());
@@ -148,7 +180,7 @@ public class AdminServlet extends HttpServlet {
         req.setAttribute("discounts", discountService.getAllDiscounts());
 
         req.setAttribute("productsCount", productService.getProductsCount());
-        req.setAttribute("ordersCount", orderService.getAllOrders().size());
+        req.setAttribute("ordersCount", orders.size());
         req.setAttribute("usersCount", userService.getUsersCount());
         req.setAttribute("totalRevenue", orderService.getTotalRevenue());
 
@@ -173,15 +205,14 @@ public class AdminServlet extends HttpServlet {
             return;
         }
 
-        String action =
-                req.getParameter("action");
+        HttpSession session = req.getSession();
+        String action = req.getParameter("action");
 
         if ("saveProduct".equals(action)) {
             saveProduct(req);
         }
 
         else if ("deleteProduct".equals(action)) {
-
             int id = parseIntOrDefault(
                     req.getParameter("id"),
                     0
@@ -193,19 +224,16 @@ public class AdminServlet extends HttpServlet {
         }
 
         else if ("bulkDeleteProducts".equals(action)) {
-
             for (Integer id : parseIds(req.getParameter("productIds"))) {
                 productService.delete(id);
             }
         }
 
         else if ("bulkSetStock".equals(action)) {
-
-            int stock =
-                    parseIntOrDefault(
-                            req.getParameter("bulkStock"),
-                            0
-                    );
+            int stock = parseIntOrDefault(
+                    req.getParameter("bulkStock"),
+                    0
+            );
 
             for (Integer id : parseIds(req.getParameter("productIds"))) {
                 inventoryService.saveOrUpdate(id, stock);
@@ -213,34 +241,39 @@ public class AdminServlet extends HttpServlet {
         }
 
         else if ("updateStatus".equals(action)) {
+            int orderId = parseIntOrDefault(
+                    req.getParameter("orderId"),
+                    0
+            );
 
-            int orderId =
-                    parseIntOrDefault(
-                            req.getParameter("orderId"),
-                            0
-                    );
-
-            String status =
-                    req.getParameter("status");
+            String status = req.getParameter("status");
 
             if (orderId > 0) {
-                orderService.updateStatus(orderId, status);
+                orderService.updateStatus(
+                        orderId,
+                        status,
+                        getCurrentUserId(req)
+                );
             }
         }
 
         else if ("refundOrder".equals(action)) {
+            int orderId = parseIntOrDefault(
+                    req.getParameter("orderId"),
+                    0
+            );
 
-            int orderId =
-                    parseIntOrDefault(
-                            req.getParameter("orderId"),
-                            0
-                    );
-
-            String reason =
-                    req.getParameter("reason");
+            String reason = req.getParameter("reason");
 
             if (orderId > 0) {
-                paymentService.refundOrder(orderId, reason);
+                boolean success = paymentService.refundOrder(orderId, reason);
+
+                if (!success) {
+                    session.setAttribute(
+                            "adminError",
+                            "Не удалось выполнить возврат. Проверьте, что заказ оплачен и не завершён."
+                    );
+                }
             }
         }
 
@@ -249,37 +282,69 @@ public class AdminServlet extends HttpServlet {
         }
 
         else if ("deleteDiscount".equals(action)) {
-
-            int id =
-                    parseIntOrDefault(
-                            req.getParameter("id"),
-                            0
-                    );
+            int id = parseIntOrDefault(
+                    req.getParameter("id"),
+                    0
+            );
 
             if (id > 0) {
                 discountService.delete(id);
             }
         }
 
-        else if ("updateUser".equals(action)) {
+        else if ("saveCategory".equals(action)) {
+            int categoryId = saveCategory(req);
 
-            int userId =
-                    parseIntOrDefault(
-                            req.getParameter("userId"),
-                            0
+            if (categoryId > 0) {
+                session.setAttribute(
+                        "adminMessage",
+                        "Категория сохранена."
+                );
+            } else {
+                session.setAttribute(
+                        "adminError",
+                        "Не удалось сохранить категорию. Проверьте название и родительскую категорию."
+                );
+            }
+        }
+
+        else if ("deleteCategory".equals(action)) {
+            int id = parseIntOrDefault(
+                    req.getParameter("id"),
+                    0
+            );
+
+            if (id > 0) {
+                boolean deleted = categoryService.delete(id);
+
+                if (deleted) {
+                    session.setAttribute(
+                            "adminMessage",
+                            "Категория удалена."
                     );
+                } else {
+                    session.setAttribute(
+                            "adminError",
+                            "Категорию нельзя удалить, если у неё есть подкатегории или товары."
+                    );
+                }
+            }
+        }
 
-            String role =
-                    req.getParameter("role");
+        else if ("updateUser".equals(action)) {
+            int userId = parseIntOrDefault(
+                    req.getParameter("userId"),
+                    0
+            );
+
+            String role = req.getParameter("role");
 
             boolean blocked =
                     "on".equals(req.getParameter("blocked"));
 
-            Integer currentUserId =
-                    getCurrentUserId(req);
+            Integer currentUserId = getCurrentUserId(req);
 
             if (userId > 0) {
-
                 userService.updateRole(userId, role);
 
                 if (currentUserId == null ||
@@ -292,15 +357,12 @@ public class AdminServlet extends HttpServlet {
         }
 
         else if ("updateReviewStatus".equals(action)) {
+            int reviewId = parseIntOrDefault(
+                    req.getParameter("reviewId"),
+                    0
+            );
 
-            int reviewId =
-                    parseIntOrDefault(
-                            req.getParameter("reviewId"),
-                            0
-                    );
-
-            String status =
-                    req.getParameter("status");
+            String status = req.getParameter("status");
 
             if (reviewId > 0) {
                 reviewService.updateStatus(reviewId, status);
@@ -311,7 +373,6 @@ public class AdminServlet extends HttpServlet {
     }
 
     private void saveProduct(HttpServletRequest req) {
-
         Product product = new Product();
 
         product.setName(req.getParameter("name"));
@@ -339,21 +400,17 @@ public class AdminServlet extends HttpServlet {
         product.setAttributes(req.getParameter("attributes"));
         product.setImageUrl(req.getParameter("imageUrl"));
 
-        int stock =
-                parseIntOrDefault(
-                        req.getParameter("stock"),
-                        0
-                );
+        int stock = parseIntOrDefault(
+                req.getParameter("stock"),
+                0
+        );
 
-        String idParam =
-                req.getParameter("id");
+        String idParam = req.getParameter("id");
 
         if (idParam != null &&
                 !idParam.isBlank()) {
 
-            product.setId(
-                    Integer.parseInt(idParam)
-            );
+            product.setId(Integer.parseInt(idParam));
 
             productService.update(product);
 
@@ -364,8 +421,7 @@ public class AdminServlet extends HttpServlet {
 
         } else {
 
-            int productId =
-                    productService.create(product);
+            int productId = productService.create(product);
 
             if (productId > 0) {
                 inventoryService.saveOrUpdate(
@@ -377,7 +433,6 @@ public class AdminServlet extends HttpServlet {
     }
 
     private void saveDiscount(HttpServletRequest req) {
-
         Discount discount = new Discount();
 
         discount.setId(
@@ -413,11 +468,34 @@ public class AdminServlet extends HttpServlet {
         discountService.save(discount, productIds);
     }
 
+    private int saveCategory(HttpServletRequest req) {
+        Category category = new Category();
+
+        category.setId(
+                parseIntOrDefault(
+                        req.getParameter("id"),
+                        0
+                )
+        );
+
+        category.setName(req.getParameter("name"));
+
+        int parentId = parseIntOrDefault(
+                req.getParameter("parentId"),
+                0
+        );
+
+        if (parentId > 0) {
+            category.setParentId(parentId);
+        }
+
+        return categoryService.save(category);
+    }
+
     private int parseIntOrDefault(String value,
                                   int defaultValue) {
 
         try {
-
             if (value == null || value.isBlank()) {
                 return defaultValue;
             }
@@ -430,15 +508,12 @@ public class AdminServlet extends HttpServlet {
     }
 
     private Timestamp parseTimestamp(String value) {
-
         try {
-
             if (value == null || value.isBlank()) {
                 return null;
             }
 
-            String normalized =
-                    value.trim().replace("T", " ");
+            String normalized = value.trim().replace("T", " ");
 
             if (normalized.length() == 16) {
                 normalized += ":00";
@@ -452,20 +527,16 @@ public class AdminServlet extends HttpServlet {
     }
 
     private List<Integer> parseIds(String value) {
-
         List<Integer> ids = new ArrayList<>();
 
         if (value == null || value.isBlank()) {
             return ids;
         }
 
-        String[] parts =
-                value.split("[,;\\s]+");
+        String[] parts = value.split("[,;\\s]+");
 
         for (String part : parts) {
-
             try {
-
                 if (!part.isBlank()) {
                     ids.add(Integer.parseInt(part.trim()));
                 }
@@ -478,16 +549,13 @@ public class AdminServlet extends HttpServlet {
     }
 
     private String idsToText(List<Integer> ids) {
-
         if (ids == null || ids.isEmpty()) {
             return "";
         }
 
-        StringBuilder builder =
-                new StringBuilder();
+        StringBuilder builder = new StringBuilder();
 
         for (Integer id : ids) {
-
             if (builder.length() > 0) {
                 builder.append(", ");
             }
