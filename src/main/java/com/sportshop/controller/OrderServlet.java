@@ -13,23 +13,19 @@ import java.util.List;
 @WebServlet("/orders")
 public class OrderServlet extends HttpServlet {
 
-    private final OrderService service =
-            new OrderService();
+    private final OrderService service = new OrderService();
 
     private Integer getUserId(HttpServletRequest req) {
-        Object userId =
-                req.getSession().getAttribute("userId");
+        Object userId = req.getSession().getAttribute("userId");
 
         if (userId instanceof Integer) {
             return (Integer) userId;
         }
-
         return null;
     }
 
     @Override
-    protected void doGet(HttpServletRequest req,
-                         HttpServletResponse resp)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         Integer userId = getUserId(req);
@@ -42,18 +38,14 @@ public class OrderServlet extends HttpServlet {
         List<Order> orders = service.getUserOrders(userId);
 
         req.setAttribute("orders", orders);
-        req.setAttribute(
-                "orderStatusHistory",
-                service.getStatusHistoryMap(orders)
-        );
+        req.setAttribute("orderStatusHistory", service.getStatusHistoryMap(orders));
 
         req.getRequestDispatcher("/orders.jsp")
                 .forward(req, resp);
     }
 
     @Override
-    protected void doPost(HttpServletRequest req,
-                          HttpServletResponse resp)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
         req.setCharacterEncoding("UTF-8");
